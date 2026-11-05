@@ -1,0 +1,20 @@
+name: BorderCardReminder
+options:
+  bundleIdPrefix: cn.shenlink
+  deploymentTarget:
+    iOS: '16.0'
+targets:
+  BorderCardReminder:
+    type: application
+    platform: iOS
+    sources: [Sources]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: cn.shenlink.guard.ios
+        SWIFT_VERSION: '5.0'
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: 过关换卡
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: 接近选定口岸时提醒你检查上网卡，位置仅由手机处理。
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        MARKETING_VERSION: 1.2.0
+        CURRENT_PROJECT_VERSION: 3

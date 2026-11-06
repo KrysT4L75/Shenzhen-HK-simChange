@@ -17,7 +17,8 @@ jobs:
       - name: Check dashboard and domain behavior
         run: |
           node --check app/src/main/assets/app.js
-          node --test tests/domain.test.cjs
+          node --check app/src/main/assets/flows-ui.js
+          node --test tests/domain.test.cjs tests/flows.test.cjs
       - name: Check SIM monitoring and landmark inference
         run: |
           mkdir -p build/tests

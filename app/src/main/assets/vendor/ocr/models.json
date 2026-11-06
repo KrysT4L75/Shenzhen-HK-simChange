@@ -1,0 +1,21 @@
+{
+  "tesseract": "6.0.1",
+  "core": "6.0.0",
+  "models": [
+    {
+      "lang": "eng",
+      "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/87416418657359cb625c412a48b6e1d6d41c29bd/eng.traineddata",
+      "sha256": "b130d16b69e3888bc099133991a50a5b50e1da0e3ff6ca31a5496fab0fb386c3"
+    },
+    {
+      "lang": "chi_sim",
+      "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/87416418657359cb625c412a48b6e1d6d41c29bd/chi_sim.traineddata",
+      "sha256": "6a317f84d100103a0740334e01c3dedbe761a29d946b44a166cb322729094bec"
+    },
+    {
+      "lang": "chi_tra",
+      "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/87416418657359cb625c412a48b6e1d6d41c29bd/chi_tra.traineddata",
+      "sha256": "e79a6f953b9ed3c42375ab85780affb9d9aeaf84bbb68e534904937fcdf38b6e"
+    }
+  ]
+}

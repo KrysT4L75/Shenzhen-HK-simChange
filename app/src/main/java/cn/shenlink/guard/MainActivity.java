@@ -5,6 +5,10 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -15,11 +19,14 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.webkit.WebResourceResponse;
+import android.util.Base64;
 import android.widget.LinearLayout;
 import org.json.JSONObject;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -30,7 +37,7 @@ import java.util.List;
 public class MainActivity extends Activity {
     private WebView web;
     private String pendingJourney = "";
-    private static final int EXPORT = 201, IMPORT = 202, LOCATION = 203, NOTIFY = 204;
+    private static final int EXPORT = 201, IMPORT = 202, LOCATION = 203, NOTIFY = 204, TIMETABLE_IMAGE = 205;
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         Notifications.channels(this); CalendarReminders.channel(this);
@@ -51,11 +58,33 @@ public class MainActivity extends Activity {
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW); settings.setBlockNetworkLoads(true);
         settings.setTextZoom(100); web.addJavascriptInterface(new DashboardBridge(),"Android");
         web.setWebViewClient(new WebViewClient(){
+            @Override public WebResourceResponse shouldInterceptRequest(WebView view,WebResourceRequest request){return assetResponse(request.getUrl());}
+            @Override public WebResourceResponse shouldInterceptRequest(WebView view,String url){return assetResponse(Uri.parse(url));}
             @Override public boolean shouldOverrideUrlLoading(WebView view,WebResourceRequest request){return true;}
             @Override public boolean shouldOverrideUrlLoading(WebView view,String url){return true;}
         });
         root.addView(web,new LinearLayout.LayoutParams(-1,-1));setContentView(root);root.requestApplyInsets();
-        web.loadUrl("file:///android_asset/index.html"); CalendarReminders.sync(this);
+        web.loadUrl("https://appassets.androidplatform.net/assets/index.html"); CalendarReminders.sync(this);
+    }
+    private WebResourceResponse assetResponse(Uri uri){
+        try {
+            String path=uri.getPath();
+            if(!"https".equals(uri.getScheme())||!"appassets.androidplatform.net".equals(uri.getHost())||path==null||!path.startsWith("/assets/")||path.contains("..")||path.contains("\\"))return deniedAsset();
+            String name=path.substring(8),mime=name.endsWith(".js")?"application/javascript":name.endsWith(".css")?"text/css":name.endsWith(".html")?"text/html":name.endsWith(".json")?"application/json":name.endsWith(".wasm")?"application/wasm":"application/octet-stream";
+            return new WebResourceResponse(mime,mime.startsWith("text/")||mime.contains("javascript")||mime.contains("json")?"UTF-8":null,getAssets().open(name));
+        } catch(Exception ex){return deniedAsset();}
+    }
+    private WebResourceResponse deniedAsset(){return new WebResourceResponse("text/plain","UTF-8",403,"Blocked",java.util.Collections.emptyMap(),new ByteArrayInputStream(new byte[0]));}
+    private void readTimetableImage(Uri uri){
+        new Thread(()->{try{
+            byte[] encoded;try(InputStream in=getContentResolver().openInputStream(uri);ByteArrayOutputStream out=new ByteArrayOutputStream()){if(in==null)throw new Exception();byte[] chunk=new byte[8192];int n;while((n=in.read(chunk))!=-1){if(out.size()+n>20*1024*1024)throw new Exception("图片超过20MB");out.write(chunk,0,n);}encoded=out.toByteArray();}
+            BitmapFactory.Options options=new BitmapFactory.Options();options.inJustDecodeBounds=true;BitmapFactory.decodeByteArray(encoded,0,encoded.length,options);if(options.outWidth<=0||options.outHeight<=0||(long)options.outWidth*options.outHeight>60000000)throw new Exception("图片格式或尺寸不支持");options.inJustDecodeBounds=false;options.inSampleSize=1;while(Math.max(options.outWidth,options.outHeight)/options.inSampleSize>2600)options.inSampleSize*=2;
+            Bitmap decoded=BitmapFactory.decodeByteArray(encoded,0,encoded.length,options);if(decoded==null)throw new Exception();
+            int rotation=0;try{android.media.ExifInterface exif=new android.media.ExifInterface(new ByteArrayInputStream(encoded));int orientation=exif.getAttributeInt(android.media.ExifInterface.TAG_ORIENTATION,1);rotation=orientation==6?90:orientation==3?180:orientation==8?270:0;}catch(Exception ignored){}
+            if(rotation!=0){Matrix matrix=new Matrix();matrix.postRotate(rotation);Bitmap rotated=Bitmap.createBitmap(decoded,0,0,decoded.getWidth(),decoded.getHeight(),matrix,true);if(rotated!=decoded)decoded.recycle();decoded=rotated;}
+            Bitmap white=Bitmap.createBitmap(decoded.getWidth(),decoded.getHeight(),Bitmap.Config.ARGB_8888);Canvas canvas=new Canvas(white);canvas.drawColor(Color.WHITE);canvas.drawBitmap(decoded,0,0,null);decoded.recycle();ByteArrayOutputStream result=new ByteArrayOutputStream();white.compress(Bitmap.CompressFormat.JPEG,96,result);white.recycle();String data="data:image/jpeg;base64,"+Base64.encodeToString(result.toByteArray(),Base64.NO_WRAP);
+            runOnUiThread(()->{if(web!=null&&!isFinishing())web.evaluateJavascript("window.onTimetableImage("+JSONObject.quote(data)+")",null);});
+        }catch(Exception|OutOfMemoryError ex){runOnUiThread(()->message("图片读取失败，请选择20MB以内的清晰PNG或JPG截图"));}},"timetable-image").start();
     }
     private android.content.SharedPreferences dashboard(){return getSharedPreferences("linkday",MODE_PRIVATE);}
     private void message(String value){if(web!=null)web.evaluateJavascript("window.onNativeMessage && window.onNativeMessage("+JSONObject.quote(value)+")",null);}
@@ -104,6 +133,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void stopJourney(){runOnUiThread(()->{JourneyService.markStopped(MainActivity.this);stopService(new Intent(MainActivity.this,JourneyService.class));message("通勤定位已停止");});}
         @JavascriptInterface public void requestNotifications(){runOnUiThread(()->notifications());}
         @JavascriptInterface public void exitApp(){runOnUiThread(()->finish());}
+        @JavascriptInterface public void chooseTimetableImage(){runOnUiThread(()->{try{startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("image/*").putExtra(Intent.EXTRA_MIME_TYPES,new String[]{"image/png","image/jpeg","image/webp"}),TIMETABLE_IMAGE);}catch(RuntimeException ex){message("未找到图片选择程序");}});}
         @JavascriptInterface public void exportData(){runOnUiThread(()->{
             try{startActivityForResult(new Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("application/json").putExtra(Intent.EXTRA_TITLE,"通勤助手-"+LocalDate.now(ZoneOffset.ofHours(8))+".json"),EXPORT);}catch(RuntimeException ex){message("未找到可用的文件保存程序");}
         });}
@@ -114,6 +144,7 @@ public class MainActivity extends Activity {
     @Override public void onRequestPermissionsResult(int request,String[] permissions,int[] results){super.onRequestPermissionsResult(request,permissions,results);if(request==LOCATION)startJourneyNow();if(request==NOTIFY){CalendarReminders.sync(this);message(Notifications.manager(this).areNotificationsEnabled()?"通知已开启":"通知尚未开启，日程仍会保存在应用里");}}
     @Override protected void onActivityResult(int request,int result,Intent intent){
         super.onActivityResult(request,result,intent);if(result!=RESULT_OK||intent==null||intent.getData()==null)return;Uri uri=intent.getData();
+        if(request==TIMETABLE_IMAGE){readTimetableImage(uri);return;}
         try{
             if(request==EXPORT){try(OutputStream out=getContentResolver().openOutputStream(uri,"wt")){if(out==null)throw new Exception();out.write(dashboard().getString("data","{}").getBytes(StandardCharsets.UTF_8));}message("备份已导出");}
             if(request==IMPORT){String raw;try(InputStream in=getContentResolver().openInputStream(uri);ByteArrayOutputStream out=new ByteArrayOutputStream()){if(in==null)throw new Exception();byte[] buf=new byte[8192];int n;while((n=in.read(buf))!=-1){if(out.size()+n>4*1024*1024)throw new Exception("文件过大");out.write(buf,0,n);}raw=new String(out.toByteArray(),StandardCharsets.UTF_8);}web.evaluateJavascript("window.onNativeImport("+JSONObject.quote(raw)+")",null);}

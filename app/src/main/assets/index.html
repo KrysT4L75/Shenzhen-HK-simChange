@@ -4,12 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f6f7f4">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'">
   <title>通勤助手 · COMMUTE</title>
   <link rel="stylesheet" href="app.css">
   <script defer src="domain.js"></script>
+  <script defer src="flows.js"></script>
+  <script defer src="timetable-import.js"></script>
+  <script defer src="vendor/ocr/tesseract.min.js"></script>
   <script defer src="boot.js"></script>
   <script defer src="app.js"></script>
+  <script defer src="flows-ui.js"></script>
 </head>
 <body>
   <div class="app-shell">
@@ -24,5 +28,6 @@
   <div id="modal-root"></div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <input type="file" id="import-file" accept="application/json,.json" hidden>
+  <input type="file" id="timetable-image" accept="image/png,image/jpeg,image/webp" hidden>
 </body>
 </html>

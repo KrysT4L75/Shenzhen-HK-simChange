@@ -24,12 +24,20 @@ if (!$SkipTests) {
     Check-Exit 'Compile behavior tests'
     & $javaExe -cp $testDir cn.shenlink.guard.ReminderEngineTest | Tee-Object -FilePath (Join-Path $buildDir 'behavior-tests.txt')
     Check-Exit 'Behavior tests'
+    & $javacExe -encoding UTF-8 --release 8 -d $testDir (Join-Path $projectRoot 'app\src\main\java\cn\shenlink\guard\ReminderEngine.java') (Join-Path $projectRoot 'app\src\main\java\cn\shenlink\guard\JourneyInference.java') (Join-Path $projectRoot 'tests\JourneyInferenceTest.java')
+    Check-Exit 'Compile journey tests'
+    & $javaExe -cp $testDir cn.shenlink.guard.JourneyInferenceTest | Tee-Object -FilePath (Join-Path $buildDir 'journey-tests.txt')
+    Check-Exit 'Journey tests'
+    if (Get-Command node -ErrorAction SilentlyContinue) {
+        & node --test tests/domain.test.cjs | Tee-Object -FilePath (Join-Path $buildDir 'dashboard-tests.txt')
+        Check-Exit 'Dashboard domain tests'
+    } else { throw 'Node.js is required for dashboard tests. Install Node or use -SkipTests explicitly.' }
 }
 $compiledRes = Join-Path $buildDir 'resources.zip'
 & (Join-Path $sdkBuild 'aapt2.exe') compile --dir app/src/main/res -o $compiledRes
 Check-Exit 'Compile resources'
 $unsigned = Join-Path $buildDir 'unsigned.apk'
-& (Join-Path $sdkBuild 'aapt2.exe') link -I $sdkPlatform --manifest app/src/main/AndroidManifest.xml --java $generatedDir -o $unsigned $compiledRes
+& (Join-Path $sdkBuild 'aapt2.exe') link -I $sdkPlatform --manifest app/src/main/AndroidManifest.xml -A app/src/main/assets --java $generatedDir -o $unsigned $compiledRes
 Check-Exit 'Link resources'
 $sources = @(Get-ChildItem -LiteralPath (Join-Path $projectRoot 'app\src\main\java'),$generatedDir -Filter '*.java' -Recurse | ForEach-Object { '"' + $_.FullName.Replace('\','/') + '"' })
 $sourceList = Join-Path $buildDir 'sources.txt'
@@ -60,7 +68,7 @@ if (!(Test-Path -LiteralPath $keyFile)) {
     & (Join-Path $jdkDir 'bin\keytool.exe') -genkeypair -keystore $keyFile -storetype PKCS12 -storepass:file $passFile -alias local-release -keyalg RSA -keysize 3072 -validity 10000 -dname 'CN=Guoguan Huanka Personal,O=Local,C=CN'
     Check-Exit 'Generate local signing key'
 }
-$apk = Join-Path $distDir 'GuoguanHuanka-1.2.0.apk'
+$apk = Join-Path $distDir '通勤助手-2.0.0.apk'
 & $javaExe -jar (Join-Path $sdkBuild 'lib\apksigner.jar') sign --ks $keyFile --ks-key-alias local-release --ks-pass "file:$passFile" --out $apk $aligned
 Check-Exit 'Sign APK'
 & $javaExe -jar (Join-Path $sdkBuild 'lib\apksigner.jar') verify --verbose --print-certs $apk | Tee-Object -FilePath (Join-Path $distDir 'apk-signature.txt')
@@ -70,7 +78,7 @@ Check-Exit 'Verify alignment'
 & (Join-Path $sdkBuild 'aapt2.exe') dump badging $apk | Set-Content -LiteralPath (Join-Path $distDir 'apk-metadata.txt') -Encoding utf8
 Check-Exit 'Inspect package'
 $checksum = (Get-FileHash -LiteralPath $apk -Algorithm SHA256).Hash.ToLowerInvariant()
-[IO.File]::WriteAllText((Join-Path $distDir 'SHA256.txt'),"$checksum  GuoguanHuanka-1.2.0.apk`n",[Text.UTF8Encoding]::new($false))
+[IO.File]::WriteAllText((Join-Path $distDir 'SHA256.txt'),"$checksum  通勤助手-2.0.0.apk`n",[Text.UTF8Encoding]::new($false))
 Write-Output "APK ready: $apk"
 Write-Output "Build evidence: $buildDir"
 } finally { Pop-Location }

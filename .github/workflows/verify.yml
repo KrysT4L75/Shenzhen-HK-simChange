@@ -1,0 +1,26 @@
+name: Verify core behavior
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Check dashboard and domain behavior
+        run: |
+          node --check app/src/main/assets/app.js
+          node --test tests/domain.test.cjs
+      - name: Check SIM monitoring and landmark inference
+        run: |
+          mkdir -p build/tests
+          javac -encoding UTF-8 --release 8 -d build/tests app/src/main/java/cn/shenlink/guard/ReminderEngine.java app/src/main/java/cn/shenlink/guard/JourneyInference.java tests/ReminderEngineTest.java tests/JourneyInferenceTest.java
+          java -cp build/tests cn.shenlink.guard.ReminderEngineTest
+          java -cp build/tests cn.shenlink.guard.JourneyInferenceTest

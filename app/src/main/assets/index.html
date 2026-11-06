@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f6f7f4">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>通勤助手 · COMMUTE</title>
+  <link rel="stylesheet" href="app.css">
+  <script defer src="domain.js"></script>
+  <script defer src="boot.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="workspace">
+      <header class="topbar" id="topbar"></header>
+      <main id="main" tabindex="-1"></main>
+      <footer class="desktop-footer">把上课、过关和每一程，安排妥当。<span>通勤助手 · 本机保存</span></footer>
+    </div>
+  </div>
+  <nav class="bottom-nav" id="bottom-nav" aria-label="主导航"></nav>
+  <div id="modal-root"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <input type="file" id="import-file" accept="application/json,.json" hidden>
+</body>
+</html>

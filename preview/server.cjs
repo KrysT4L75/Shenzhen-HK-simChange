@@ -1,0 +1,4 @@
+const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
+const root=path.resolve(__dirname,'../app/src/main/assets');
+const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://127.0.0.1:4178'),p=decodeURIComponent(u.pathname);const file=p==='/phone'?path.join(__dirname,'phone.html'):path.resolve(root,'.'+(p==='/'?'/index.html':p));if(p!=='/phone'&&!file.startsWith(root+path.sep)){res.writeHead(403);res.end();return;}const type={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8'}[path.extname(file)]||'application/octet-stream';const content=fs.readFileSync(file);res.writeHead(200,{'Content-Type':type,'Cache-Control':'no-store'});res.end(content);}catch(ex){if(!res.headersSent)res.writeHead(404);res.end('Not found');}});
+server.listen(4178,'127.0.0.1',()=>console.log('Local preview: http://127.0.0.1:4178/ · phone: /phone'));

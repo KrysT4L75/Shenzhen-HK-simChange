@@ -39,6 +39,27 @@ Check-Exit 'Compile resources'
 $unsigned = Join-Path $buildDir 'unsigned.apk'
 & (Join-Path $sdkBuild 'aapt2.exe') link -I $sdkPlatform --manifest app/src/main/AndroidManifest.xml -A app/src/main/assets --java $generatedDir -o $unsigned $compiledRes
 Check-Exit 'Link resources'
+# Windows aapt2 may emit backslashes in nested asset ZIP names. Android requires '/'.
+Add-Type -AssemblyName System.IO.Compression
+$archive = [IO.Compression.ZipFile]::Open((Join-Path $projectRoot $unsigned),[IO.Compression.ZipArchiveMode]::Update)
+try {
+    foreach ($entry in @($archive.Entries)) {
+        if ($entry.FullName.Contains('\')) {
+            $correctName = $entry.FullName.Replace('\','/')
+            if ($archive.GetEntry($correctName)) { throw "Duplicate asset: $correctName" }
+            $target = $archive.CreateEntry($correctName,[IO.Compression.CompressionLevel]::Optimal)
+            $inputStream = $entry.Open(); $outputStream = $target.Open()
+            try { $inputStream.CopyTo($outputStream) } finally { $inputStream.Dispose(); $outputStream.Dispose() }
+            $entry.Delete()
+        }
+    }
+    foreach ($assetFile in Get-ChildItem -LiteralPath (Join-Path $projectRoot 'app/src/main/assets') -Recurse -File) {
+        $assetRelative = $assetFile.FullName.Substring((Join-Path $projectRoot 'app/src/main/assets').Length+1).Replace('\','/')
+        if (!$archive.GetEntry('assets/'+$assetRelative)) { throw "Missing APK asset: $assetRelative" }
+    }
+} finally { $archive.Dispose() }
+Write-Output 'PASS: all APK asset paths use Android separators'
+
 $sources = @(Get-ChildItem -LiteralPath (Join-Path $projectRoot 'app\src\main\java'),$generatedDir -Filter '*.java' -Recurse | ForEach-Object { '"' + $_.FullName.Replace('\','/') + '"' })
 $sourceList = Join-Path $buildDir 'sources.txt'
 [IO.File]::WriteAllLines($sourceList,$sources,[Text.UTF8Encoding]::new($false))
@@ -68,7 +89,7 @@ if (!(Test-Path -LiteralPath $keyFile)) {
     & (Join-Path $jdkDir 'bin\keytool.exe') -genkeypair -keystore $keyFile -storetype PKCS12 -storepass:file $passFile -alias local-release -keyalg RSA -keysize 3072 -validity 10000 -dname 'CN=Guoguan Huanka Personal,O=Local,C=CN'
     Check-Exit 'Generate local signing key'
 }
-$apk = Join-Path $distDir '通勤助手-2.1.0.apk'
+$apk = Join-Path $distDir '通勤助手-2.1.3.apk'
 & $javaExe -jar (Join-Path $sdkBuild 'lib\apksigner.jar') sign --ks $keyFile --ks-key-alias local-release --ks-pass "file:$passFile" --out $apk $aligned
 Check-Exit 'Sign APK'
 & $javaExe -jar (Join-Path $sdkBuild 'lib\apksigner.jar') verify --verbose --print-certs $apk | Tee-Object -FilePath (Join-Path $distDir 'apk-signature.txt')
@@ -78,7 +99,7 @@ Check-Exit 'Verify alignment'
 & (Join-Path $sdkBuild 'aapt2.exe') dump badging $apk | Set-Content -LiteralPath (Join-Path $distDir 'apk-metadata.txt') -Encoding utf8
 Check-Exit 'Inspect package'
 $checksum = (Get-FileHash -LiteralPath $apk -Algorithm SHA256).Hash.ToLowerInvariant()
-[IO.File]::WriteAllText((Join-Path $distDir 'SHA256.txt'),"$checksum  通勤助手-2.1.0.apk`n",[Text.UTF8Encoding]::new($false))
+[IO.File]::WriteAllText((Join-Path $distDir 'SHA256.txt'),"$checksum  通勤助手-2.1.3.apk`n",[Text.UTF8Encoding]::new($false))
 Write-Output "APK ready: $apk"
 Write-Output "Build evidence: $buildDir"
 } finally { Pop-Location }

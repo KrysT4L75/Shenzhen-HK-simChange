@@ -76,15 +76,19 @@ public class MainActivity extends Activity {
     }
     private WebResourceResponse deniedAsset(){return new WebResourceResponse("text/plain","UTF-8",403,"Blocked",java.util.Collections.emptyMap(),new ByteArrayInputStream(new byte[0]));}
     private void readTimetableImage(Uri uri){
-        new Thread(()->{try{
+        new Thread(()->{String stage="读取图片";try{
             byte[] encoded;try(InputStream in=getContentResolver().openInputStream(uri);ByteArrayOutputStream out=new ByteArrayOutputStream()){if(in==null)throw new Exception();byte[] chunk=new byte[8192];int n;while((n=in.read(chunk))!=-1){if(out.size()+n>20*1024*1024)throw new Exception("图片超过20MB");out.write(chunk,0,n);}encoded=out.toByteArray();}
             BitmapFactory.Options options=new BitmapFactory.Options();options.inJustDecodeBounds=true;BitmapFactory.decodeByteArray(encoded,0,encoded.length,options);if(options.outWidth<=0||options.outHeight<=0||(long)options.outWidth*options.outHeight>60000000)throw new Exception("图片格式或尺寸不支持");options.inJustDecodeBounds=false;options.inSampleSize=1;while(Math.max(options.outWidth,options.outHeight)/options.inSampleSize>2600)options.inSampleSize*=2;
             Bitmap decoded=BitmapFactory.decodeByteArray(encoded,0,encoded.length,options);if(decoded==null)throw new Exception();
             int rotation=0;try{android.media.ExifInterface exif=new android.media.ExifInterface(new ByteArrayInputStream(encoded));int orientation=exif.getAttributeInt(android.media.ExifInterface.TAG_ORIENTATION,1);rotation=orientation==6?90:orientation==3?180:orientation==8?270:0;}catch(Exception ignored){}
             if(rotation!=0){Matrix matrix=new Matrix();matrix.postRotate(rotation);Bitmap rotated=Bitmap.createBitmap(decoded,0,0,decoded.getWidth(),decoded.getHeight(),matrix,true);if(rotated!=decoded)decoded.recycle();decoded=rotated;}
             Bitmap white=Bitmap.createBitmap(decoded.getWidth(),decoded.getHeight(),Bitmap.Config.ARGB_8888);Canvas canvas=new Canvas(white);canvas.drawColor(Color.WHITE);canvas.drawBitmap(decoded,0,0,null);decoded.recycle();ByteArrayOutputStream result=new ByteArrayOutputStream();white.compress(Bitmap.CompressFormat.JPEG,96,result);white.recycle();String data="data:image/jpeg;base64,"+Base64.encodeToString(result.toByteArray(),Base64.NO_WRAP);
-            runOnUiThread(()->{if(web!=null&&!isFinishing())web.evaluateJavascript("window.onTimetableImage("+JSONObject.quote(data)+")",null);});
-        }catch(Exception|OutOfMemoryError ex){runOnUiThread(()->message("图片读取失败，请选择20MB以内的清晰PNG或JPG截图"));}},"timetable-image").start();
+            // Load the bundled engine explicitly before handing the image to the WebView.
+            // evaluateJavascript avoids a missing/deferred external script leaving Tesseract undefined.
+            stage="加载识别引擎";String engine;try(InputStream in=getAssets().open("vendor/ocr/tesseract.min.js");ByteArrayOutputStream out=new ByteArrayOutputStream()){byte[] chunk=new byte[8192];int n;while((n=in.read(chunk))!=-1)out.write(chunk,0,n);engine=new String(out.toByteArray(),StandardCharsets.UTF_8);}
+            final String engineScript=engine;
+            runOnUiThread(()->{if(web!=null&&!isFinishing())web.evaluateJavascript(engineScript,ignored->{if(web!=null&&!isFinishing())web.evaluateJavascript("window.onTimetableImage("+JSONObject.quote(data)+")",null);});});
+        }catch(Exception|OutOfMemoryError ex){final String detail=stage+"失败："+(ex instanceof OutOfMemoryError?"可用内存不足，请裁剪图片后重试":ex.getMessage()==null?ex.getClass().getSimpleName():ex.getMessage());runOnUiThread(()->message(detail));}},"timetable-image").start();
     }
     private android.content.SharedPreferences dashboard(){return getSharedPreferences("linkday",MODE_PRIVATE);}
     private void message(String value){if(web!=null)web.evaluateJavascript("window.onNativeMessage && window.onNativeMessage("+JSONObject.quote(value)+")",null);}

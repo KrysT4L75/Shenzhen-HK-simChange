@@ -2,9 +2,15 @@
 
 课程表、作业考试、深港往返记账和换卡守护，放进同一个离线 Android 应用。
 
-**最新版：Android 2.1.0（Android 8+，建议使用新版 System WebView）。**
+**最新版：Android 2.1.3（Android 8+，建议使用新版 System WebView）。**
 
-[下载通勤助手 APK](https://raw.githubusercontent.com/KrysT4L75/Shenzhen-HK-simChange/main/packages/通勤助手-2.1.0.apk) · [源码包](packages/通勤助手-2.1.0-源码.zip) · [校验值](packages/SHA256.txt) · [本次验证](docs/verification-2.1.0.md)
+[下载通勤助手 APK](https://raw.githubusercontent.com/KrysT4L75/Shenzhen-HK-simChange/main/packages/通勤助手-2.1.3.apk) · [源码包](packages/通勤助手-2.1.3-源码.zip) · [校验值](packages/SHA256.txt) · [本次验证](docs/verification-2.1.3.md)
+
+## 2.1.3 更新
+
+修复 Windows 打包时 OCR 资源路径使用反斜杠，导致 Android 找不到识别引擎的问题。2.1.2 历史包仍在 packages 目录，但请安装 2.1.3。
+
+本版新增香港走法与深圳组合路段编辑，修复手机识别引擎未定义时的加载流程。首页保持开始通勤后直接接课程表。方向仍由用户选择，回程无需先记录去程。[修订验证](docs/verification-2.1.3.md)。
 
 ## 2.1：尽量少填写
 
@@ -22,7 +28,7 @@
 
 ### 每天分别选去程和返程
 
-首页和通勤页直接展示两张卡片：**去学校**、**回深圳**。每程独立选择：
+首页点击“开始通勤”后选择去学校或回深圳；通勤页保留每日往返安排。每程独立选择：
 
 1. 经过哪个口岸：罗湖、文锦渡或自定义口岸。
 2. 香港段怎么走：港铁直达、上水出站再入闸、文锦渡巴士接驳等。
@@ -34,7 +40,7 @@
 
 ### 通勤守护直接可见
 
-首页上部、通勤页和行程详情都有「通勤守护」入口，显示运行状态，并直接进入原有换卡设置。已选行程还可以点「出发时开启定位」，继续使用原来的位置节点记录；也可直接确认费用，不强制先启动行程。
+首页显示换卡守护状态；通勤页和行程详情保留「通勤守护」入口，可进入原有换卡设置。已选行程还可以点「出发时开启定位」，继续使用原来的位置节点记录；也可直接确认费用，不强制先启动行程。
 
 ## 界面
 
@@ -79,7 +85,7 @@ node --test tests/domain.test.cjs tests/flows.test.cjs
 
 `app/src/main/assets/` 包含离线前端；`flows.js` 管理共享学期和每日往返，`timetable-import.js` 提取 OCR 课程，`flows-ui.js` 提供录入流程。`vendor/ocr/` 为固定版本的 Tesseract.js、WebAssembly 引擎和模型；许可证见 [第三方说明](THIRD_PARTY_NOTICES.md)。Android 通过本机资源拦截提供 HTTPS 同源地址，不发送网络请求。
 
-构建输出为 `dist/通勤助手-2.1.0.apk`。签名密钥与密码仅在本机 `.signing/`，不会进入 GitHub 或源码包。`ios/` 保留旧版换卡提醒 SwiftUI 源码，本次未提供 iOS 综合版。
+构建输出为 `dist/通勤助手-2.1.3.apk`。签名密钥与密码仅在本机 `.signing/`，不会进入 GitHub 或源码包。`ios/` 保留旧版换卡提醒 SwiftUI 源码，本次未提供 iOS 综合版。
 
 ## 验证与使用范围
 

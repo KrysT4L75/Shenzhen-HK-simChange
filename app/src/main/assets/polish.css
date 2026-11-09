@@ -1,0 +1,57 @@
+/* Shared shape and reading scale. Content first; management stays in sheets. */
+:root{--radius:24px;--radius-inner:16px;--radius-control:12px;--muted:#65756b}
+body{font-size:15px;line-height:1.55}
+.card,.import-banner,.upload-hero{border-radius:var(--radius)}
+.daily-slot,.route-option,.review-course,.leg-editor,.picker-summary,.semester-bar,.side-note,.empty,.course-block{border-radius:var(--radius-inner)}
+.btn,.btn.compact,.icon-btn,.choice-chip,.field input,.field select,.field textarea,.optional-fields textarea,.date-picker input,.amount-field,.day,.term-option{border-radius:var(--radius-control)}
+.btn,.btn.compact,.text-btn,.choice-chip,.segmented button{font-size:14px;min-height:44px}
+.btn.compact{padding:10px 14px}.icon-btn{min-width:44px;min-height:44px}
+.badge{border-radius:8px;font-size:13px}.row,.hero-bottom{flex-wrap:wrap}
+.page-intro{margin-bottom:20px;gap:12px}.page-intro h1{font-size:28px;letter-spacing:0}
+.card-head h2,.settings-row h3,.course-block h3,.task-copy h3{font-size:17px;line-height:1.5}
+.course-block .meta,.settings-row p,.task-copy p,.route-stop small,.slot-mode,.route-option small,.picker-summary small,.quick-leg-label small,.optional-fields summary,.check-line,.field>span,.sheet-note,.insight{font-size:14px;line-height:1.65;color:#607263}
+.settings-row .copy{min-width:0}.settings-row h3,.course-block h3,.route-option b{overflow-wrap:anywhere}
+.course-block{padding:16px;min-width:0}.course-code{font-size:13px}.agenda-time{width:48px;font-size:14px;padding-top:16px}.agenda-time span{font-size:13px;color:#69796f}
+.field input,.field select,.field textarea,.optional-fields textarea{font-size:16px;min-height:46px}
+.segmented{border-radius:16px;padding:4px}.segmented button{border-radius:12px;color:#637363}
+.menu-section{font-size:13px;color:#67766a;margin-top:20px;padding:14px 0 4px;border-top:1px solid var(--line)}
+.modal{border-radius:24px}.modal-header h2{font-size:20px}.modal-footer .btn{font-size:15px;min-height:46px}
+.modal-body{overscroll-behavior:contain}.modal-footer{flex-wrap:wrap}
+.hero-label,.hero-meta,.hero p{font-size:14px}.hero h2{font-size:26px}.hero p{line-height:1.7}
+.day{font-size:13px;min-height:64px}.day b{font-size:17px}
+.bottom-nav button{font-size:13px;color:#68786d}.bottom-nav .nav-icon{border-radius:12px}
+.empty h3{font-size:16px}.empty p,.budget-note,.stat .small{font-size:13px;color:#65756b}
+.date-picker{font-size:14px}.slot-heading b{font-size:17px}.slot-heading small{font-size:14px;color:#65756b}
+.picker-date{flex-wrap:wrap;gap:6px;font-size:14px}.picker-date span{font-size:13px}
+.daily-slot h3{font-size:18px}.route-stop,.quick-leg-label b{font-size:15px}
+.form-section-title{font-size:15px}.term-option b{font-size:15px}.term-option span{font-size:13px}
+.mobile-week-agenda{display:none}.week-date{font-size:14px;color:#65756b;font-weight:400;margin-left:8px}
+.time-event b{font-size:14px}.time-event span{font-size:13px}.time-event{border-radius:12px}
+.guard-panel{border-radius:16px}.guard-panel p{font-size:13px}.guard-panel .btn{font-size:14px}
+@media(max-width:700px){
+  .workspace{padding-left:16px;padding-right:16px}main{padding-top:14px;padding-bottom:110px}
+  .page-intro{margin-bottom:16px;align-items:center}.page-intro h1{font-size:26px}
+  .intro-actions{gap:8px}.card{padding:20px}.card-head{margin-bottom:16px;flex-wrap:wrap}
+  .home-grid .hero{min-height:0;padding:24px}.hero-bottom{margin-top:20px}.hero-meta{flex-basis:100%}
+  .hero-bottom>.btn.lime{width:100%}.hero h2{font-size:26px}
+  .section-toolbar{gap:12px;margin-bottom:16px}.section-toolbar>.segmented{width:100%;display:flex}
+  .section-toolbar>.segmented>button{flex:1;padding:9px 8px;white-space:nowrap}
+  .week-switch{width:100%;display:flex;justify-content:space-between;gap:4px;font-size:14px}
+  .week-switch .text-btn{padding:8px;flex-shrink:0}.week-switch>span{font-size:14px}
+  .mobile-week-agenda{display:flex;flex-direction:column;gap:16px}
+  .schedule-board,.schedule-foot{display:none}
+  .week-day-card .agenda-row{gap:10px}.week-day-card .course-block{padding:14px}
+  .summary-row{gap:12px}.stat{padding:16px}.stat-top{font-size:14px}
+  .modal,.modal.wide{border-radius:24px 24px 0 0;max-height:94dvh}
+  .modal-header{padding:22px 20px 14px}.modal-body{padding:18px 20px}
+  .modal-footer{padding:14px 20px calc(14px + env(safe-area-inset-bottom))}
+  .choice-chip{font-size:14px;padding:10px 14px}.row{gap:8px}
+  .guard-panel{flex-wrap:wrap}.guard-panel>div{min-width:140px}.guard-panel .btn{margin-left:auto}
+  .daily-commute .card-head h2{font-size:18px}.daily-slot{padding:18px}
+  .active-trip h2{font-size:21px}.task-date,.task-date b{font-size:13px}
+  .toast{font-size:14px;line-height:1.5;bottom:100px}.settings-row{gap:12px}
+  .quick-leg{grid-template-columns:minmax(0,1fr) 110px}.fare-shortcuts{flex-wrap:wrap}
+}
+.intro-actions .btn.secondary{display:inline-flex}.intro-actions .btn{font-size:14px;min-height:44px}
+.week-switch .icon-btn{width:44px;height:44px;min-width:44px;min-height:44px;border-radius:12px}
+.chart{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}.chart-col,.chart-bars{min-width:0}.chart-col>span{font-size:13px;white-space:nowrap}

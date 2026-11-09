@@ -2,15 +2,13 @@
 
 课程表、作业考试、深港往返记账和换卡守护，放进同一个离线 Android 应用。
 
-**最新版：Android 2.1.3（Android 8+，建议使用新版 System WebView）。**
+**最新版：Android 2.1.4（Android 8+，建议使用新版 System WebView）。**
 
-[下载通勤助手 APK](https://raw.githubusercontent.com/KrysT4L75/Shenzhen-HK-simChange/main/packages/通勤助手-2.1.3.apk) · [源码包](packages/通勤助手-2.1.3-源码.zip) · [校验值](packages/SHA256.txt) · [本次验证](docs/verification-2.1.3.md)
+[下载通勤助手 APK](https://raw.githubusercontent.com/KrysT4L75/Shenzhen-HK-simChange/main/packages/通勤助手-2.1.4.apk) · [源码包](packages/通勤助手-2.1.4-源码.zip) · [校验值](packages/SHA256.txt) · [本次验证](docs/verification-2.1.4.md)
 
-## 2.1.3 更新
+## 2.1.4 更新
 
-修复 Windows 打包时 OCR 资源路径使用反斜杠，导致 Android 找不到识别引擎的问题。2.1.2 历史包仍在 packages 目录，但请安装 2.1.3。
-
-本版新增香港走法与深圳组合路段编辑，修复手机识别引擎未定义时的加载流程。首页保持开始通勤后直接接课程表。方向仍由用户选择，回程无需先记录去程。[修订验证](docs/verification-2.1.3.md)。
+课表页优先展示课程；截图导入、学期设置移至右上角「管理」。手机按天展示本周课程卡片，桌面保留周网格；通勤页先展示往返安排。统一卡片、内层面板和按钮圆角，提高正文、辅助信息与触控按钮的字号和尺寸。保留 2.1.3 的 APK 资源路径修复。
 
 ## 2.1：尽量少填写
 
@@ -85,7 +83,7 @@ node --test tests/domain.test.cjs tests/flows.test.cjs
 
 `app/src/main/assets/` 包含离线前端；`flows.js` 管理共享学期和每日往返，`timetable-import.js` 提取 OCR 课程，`flows-ui.js` 提供录入流程。`vendor/ocr/` 为固定版本的 Tesseract.js、WebAssembly 引擎和模型；许可证见 [第三方说明](THIRD_PARTY_NOTICES.md)。Android 通过本机资源拦截提供 HTTPS 同源地址，不发送网络请求。
 
-构建输出为 `dist/通勤助手-2.1.3.apk`。签名密钥与密码仅在本机 `.signing/`，不会进入 GitHub 或源码包。`ios/` 保留旧版换卡提醒 SwiftUI 源码，本次未提供 iOS 综合版。
+构建输出为 `dist/通勤助手-2.1.4.apk`。签名密钥与密码仅在本机 `.signing/`，不会进入 GitHub 或源码包。`ios/` 保留旧版换卡提醒 SwiftUI 源码，本次未提供 iOS 综合版。
 
 ## 验证与使用范围
 

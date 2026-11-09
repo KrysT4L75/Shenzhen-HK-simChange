@@ -89,7 +89,7 @@ if (!(Test-Path -LiteralPath $keyFile)) {
     & (Join-Path $jdkDir 'bin\keytool.exe') -genkeypair -keystore $keyFile -storetype PKCS12 -storepass:file $passFile -alias local-release -keyalg RSA -keysize 3072 -validity 10000 -dname 'CN=Guoguan Huanka Personal,O=Local,C=CN'
     Check-Exit 'Generate local signing key'
 }
-$apk = Join-Path $distDir '通勤助手-2.1.3.apk'
+$apk = Join-Path $distDir '通勤助手-2.1.4.apk'
 & $javaExe -jar (Join-Path $sdkBuild 'lib\apksigner.jar') sign --ks $keyFile --ks-key-alias local-release --ks-pass "file:$passFile" --out $apk $aligned
 Check-Exit 'Sign APK'
 & $javaExe -jar (Join-Path $sdkBuild 'lib\apksigner.jar') verify --verbose --print-certs $apk | Tee-Object -FilePath (Join-Path $distDir 'apk-signature.txt')
@@ -99,7 +99,7 @@ Check-Exit 'Verify alignment'
 & (Join-Path $sdkBuild 'aapt2.exe') dump badging $apk | Set-Content -LiteralPath (Join-Path $distDir 'apk-metadata.txt') -Encoding utf8
 Check-Exit 'Inspect package'
 $checksum = (Get-FileHash -LiteralPath $apk -Algorithm SHA256).Hash.ToLowerInvariant()
-[IO.File]::WriteAllText((Join-Path $distDir 'SHA256.txt'),"$checksum  通勤助手-2.1.3.apk`n",[Text.UTF8Encoding]::new($false))
+[IO.File]::WriteAllText((Join-Path $distDir 'SHA256.txt'),"$checksum  通勤助手-2.1.4.apk`n",[Text.UTF8Encoding]::new($false))
 Write-Output "APK ready: $apk"
 Write-Output "Build evidence: $buildDir"
 } finally { Pop-Location }
